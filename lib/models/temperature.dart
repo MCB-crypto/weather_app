@@ -7,4 +7,8 @@ class Temperature{
     temperature=json['temp'];
   }
 
+  Map<String, dynamic> toJson() => {
+    "temp": temperature,
+  };
+
 }

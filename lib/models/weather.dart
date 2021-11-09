@@ -1,6 +1,6 @@
 class Weather {
-  String description="";
-  String icon="";
+  String? description;
+  String? icon;
 
   Weather(this.description, this.icon);
 
@@ -8,4 +8,9 @@ class Weather {
     description=json['description'];
     icon=json['icon'];
   }
+
+  Map<String, dynamic> toJson() => {
+    "description": description,
+    "icon": icon,
+  };
 }
