@@ -8,9 +8,9 @@ class WeatherResponse{
   String? cityName;
   Coordinates? coord;
 
-  WeatherResponse(this.cityName, this.coord);
+  WeatherResponse.favWeather(this.cityName, this.coord);
   WeatherResponse.empty();
-  WeatherResponse.favWeather(this.coord,this.weather, this.temp, this.cityName);
+  WeatherResponse(this.coord,this.weather, this.temp, this.cityName);
 
   WeatherResponse.fromJson(Map<String, dynamic> json) {
      final tempJson = json['main'];
@@ -32,7 +32,17 @@ class WeatherResponse{
     "name": cityName,
   };
 
-  factory WeatherResponse.fromFavJson(Map<String, dynamic> json) => WeatherResponse.favWeather(
+  Map<String, dynamic> toFavListJson() => {
+    "coord": coord!.toJson(),
+    "name": cityName,
+  };
+
+  factory WeatherResponse.fromFavListJson(Map<String, dynamic> json) => WeatherResponse.favWeather(
+    json["name"],
+    Coordinates.fromJson(json["coord"])
+  );
+
+  factory WeatherResponse.fromPrefJson(Map<String, dynamic> json) => WeatherResponse(
     Coordinates.fromJson(json["coord"]),
     Weather.fromJson(json['weather']),
     Temperature.fromJson(json["main"]),

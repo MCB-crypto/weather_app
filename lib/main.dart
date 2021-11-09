@@ -1,11 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:weather_app/providers/weather_model.dart';
 import 'package:weather_app/screens/home_screen.dart';
 import 'package:weather_app/utilities/app_colors.dart';
 
 
 void main() {
-  runApp(const MyWeatherApp());
+  runApp(ChangeNotifierProvider(
+      create: (BuildContext context) => WeatherModel() ,
+      child: const MyWeatherApp())
+  );
 }
 
 class MyWeatherApp extends StatefulWidget {

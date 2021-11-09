@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/models/coordinates.dart';
 import 'package:weather_app/models/weather_response.dart';
+import 'package:weather_app/providers/weather_model.dart';
 import 'package:weather_app/utilities/app_text_style.dart';
 import 'package:weather_app/utilities/data_service.dart';
 import 'package:weather_app/utilities/helpers.dart';
@@ -33,6 +35,8 @@ class _ShowWeatherState extends State<ShowWeather> {
     String jsonString =jsonEncode(_response!.toJson());
 
     pref.setString(prefKey, jsonString);
+
+    Provider.of<WeatherModel>(context, listen: false).setShownItem(_response!);
 
     developer.log('Set to shared preferences: ' + pref.getString(prefKey)!);
   }
