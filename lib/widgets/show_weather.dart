@@ -4,10 +4,9 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/models/coordinates.dart';
 import 'package:weather_app/models/weather_response.dart';
-import 'package:weather_app/providers/weather_model.dart';
+import 'package:weather_app/providers/weather_fav_model.dart';
 import 'package:weather_app/utilities/app_text_style.dart';
 import 'package:weather_app/utilities/data_service.dart';
-import 'package:weather_app/utilities/helpers.dart';
 import 'dart:developer' as developer;
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -36,7 +35,7 @@ class _ShowWeatherState extends State<ShowWeather> {
 
     pref.setString(prefKey, jsonString);
 
-    Provider.of<WeatherModel>(context, listen: false).setShownItem(_response!);
+    Provider.of<WeatherFavModel>(context, listen: false).setShownItem(_response!);
 
     developer.log('Set to shared preferences: ' + pref.getString(prefKey)!);
   }
@@ -67,6 +66,7 @@ class _ShowWeatherState extends State<ShowWeather> {
       _searchByCity();
     } else if (widget.weatherRes != null) {
       _response = widget.weatherRes;
+      Provider.of<WeatherFavModel>(context, listen: false).setShownItem(_response!);
       setState(()=> isLoading=false);
     } else if (widget.coord != null){
       _searchByGps();
@@ -77,7 +77,6 @@ class _ShowWeatherState extends State<ShowWeather> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: Helpers(context).getScreenHeight() / 3,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

@@ -3,19 +3,19 @@ import 'dart:convert';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:weather_app/models/coordinates.dart';
 import 'package:weather_app/models/weather_response.dart';
-import 'package:weather_app/providers/weather_model.dart';
+import 'package:weather_app/providers/weather_fav_model.dart';
 import 'package:weather_app/utilities/helpers.dart';
 import 'package:weather_app/widgets/add_to_favorites.dart';
 import 'package:weather_app/widgets/favorite_dropdown.dart';
 import 'package:weather_app/widgets/gradient_background.dart';
+import 'package:weather_app/widgets/remove_from_favorites.dart';
 import 'package:weather_app/widgets/show_weather.dart';
 import 'package:weather_app/widgets/status_bar.dart';
 import 'dart:developer' as developer;
 import 'package:provider/provider.dart';
+import 'package:weather_app/widgets/weather_for_current_location.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -26,31 +26,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   bool isConnected = true;
-  bool gpsButtonPressed=false;
   static const String prefKey = 'previousWeather';
   WeatherResponse? _selectedValue;
-  WeatherResponse? _weatherRes;
+  //WeatherResponse? _weatherRes;
 
 
   void _getFromSharedPrefs() async{
     SharedPreferences pref = await SharedPreferences.getInstance();
     if (pref.getString(prefKey)!=null) {
-      _weatherRes =
-          WeatherResponse.fromPrefJson(json.decode(pref.getString(prefKey)!));
+      WeatherResponse _weatherRes =WeatherResponse.fromPrefJson(json.decode(pref.getString(prefKey)!));
+      Provider.of<WeatherFavModel>(context, listen: false).setWeatherRes(_weatherRes);
     }
   }
 
-
-  void _getPosition() async {
-    final gpsPosition= await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best);
-    _weatherRes=WeatherResponse.empty();
-    _selectedValue=null;
-    gpsButtonPressed=true;
-    setState(() {
-      _weatherRes!.coord=Coordinates(gpsPosition.longitude,gpsPosition.latitude);
-    });
-    developer.log('Current Position '+_weatherRes!.coord.toString());
-  }
 
 
   void _getConnectivity() async {
@@ -83,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<WeatherModel>(builder:(context ,provider,__){
+    return Consumer<WeatherFavModel>(builder:(context ,provider,__){
       return Stack(
         children: [
           const GradientBackground(),
@@ -95,44 +83,50 @@ class _HomeScreenState extends State<HomeScreen> {
               return const  FavoriteDropdown();
             }()),
             SizedBox(
-              height: Helpers(context).getScreenHeight()/7,
+              height: Helpers(context).getScreenHeight()/10,
             ),
-            (() {
-              developer.log("reBuild");
-              if (provider.selected!=null && gpsButtonPressed==false){
-                _selectedValue=provider.selected;
-              }
-              if (_selectedValue != null) {
-                return ShowWeather(
-                    city: _selectedValue!.cityName!,
-                    key: ObjectKey(_selectedValue)
-                );
-              } else if(_weatherRes != null){
-                if(gpsButtonPressed==true) {
-                  gpsButtonPressed=false;
-                }
-                return ShowWeather(
-                    coord: (_weatherRes!.cityName ==null && _weatherRes!.coord !=null)?_weatherRes!.coord:null,
-                    weatherRes: (_weatherRes!.cityName !=null && _weatherRes!.coord !=null)?_weatherRes!:null,
-                    key: ObjectKey(_weatherRes)
-                );
-              }else{
-                return Container();
-              }
-            }()),
-            const AddToFavorites(),
-            IconButton(onPressed: (){
-              _getPosition();
-            },
-                icon: const Icon(Icons.gps_fixed)
-            ),
+            SizedBox(
+              height: Helpers(context).getScreenHeight() / 3,
+              child:(() {
+                developer.log("reBuild");
 
+                WeatherResponse? _providerSelected=provider.selected;
+                bool gpsButtonPressed=provider.gpsPressed;
+                _selectedValue=_providerSelected;
+
+                if (_selectedValue != null) {
+                  developer.log('show weather of '+_selectedValue!.cityName!);
+                  return ShowWeather(
+                      city: _selectedValue!.cityName!,
+                      key: ObjectKey(_selectedValue)
+                  );
+                } else if(provider.weatherRes != null){
+
+                  if(gpsButtonPressed==true) {
+                    gpsButtonPressed=false;
+                  }
+
+                  return ShowWeather(
+                      coord: (provider.weatherRes!.cityName ==null && provider.weatherRes!.coord !=null)?provider.weatherRes!.coord:null,
+                      weatherRes: (provider.weatherRes!.cityName !=null && provider.weatherRes!.coord !=null)?provider.weatherRes!:null,
+                      key: ObjectKey(provider.weatherRes)
+                  );
+                }else{
+                  return Container();
+                }
+              }()),
+            ),
+            const AddToFavorites(),
+            const RemoveFromFavorites(),
+            const WeatherForCurrentLocation(),
           ]),
         ],
       );
     });
   }
 }
+
+
 
 
 

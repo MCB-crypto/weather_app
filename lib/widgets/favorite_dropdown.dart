@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:weather_app/models/weather_response.dart';
-import 'package:weather_app/providers/weather_model.dart';
+import 'package:weather_app/providers/weather_fav_model.dart';
 import 'package:weather_app/utilities/app_text_style.dart';
 
 class FavoriteDropdown extends StatefulWidget {
@@ -17,15 +17,15 @@ class _FavoriteDropdownState extends State<FavoriteDropdown> {
 
   @override
   void initState() {
-    favList=Provider.of<WeatherModel>(context, listen: false).items;
+    favList=Provider.of<WeatherFavModel>(context,listen: false ).items;
     if(favList!.isEmpty)
-    {Provider.of<WeatherModel>(context, listen: false).loadWeatherFavorites();}
+    {Provider.of<WeatherFavModel>(context, listen: false).loadWeatherFavorites();}
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<WeatherModel>(builder: (context,provider,__){
+    return Consumer<WeatherFavModel>(builder: (context,provider,__){
       return Column(
         children: [
           Text("Favoriten:",style: const AppTextStyle().headline,),
@@ -33,9 +33,9 @@ class _FavoriteDropdownState extends State<FavoriteDropdown> {
             height: 10,
           ),
           DropdownButton<WeatherResponse>(
-            value: _selectedValue,
+             key: ObjectKey(provider.items),
+            value: provider.selected,
             onChanged: (WeatherResponse? newValue) {
-              //Provider.of<WeatherModel>(context, listen: false).setSelectedItem(newValue!);
               provider.setSelectedItem(newValue!);
               setState(() {
                 _selectedValue = newValue;
@@ -49,7 +49,6 @@ class _FavoriteDropdownState extends State<FavoriteDropdown> {
                   );
                 }).toList(),
           ),
-
         ],
       );
     });

@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:weather_app/models/coordinates.dart';
 import 'package:weather_app/models/weather_response.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:developer' as developer;
 
-class WeatherModel extends ChangeNotifier{
+class WeatherFavModel extends ChangeNotifier{
+  bool _gpsPressed=false;
   WeatherResponse? _selectedItem;
   WeatherResponse? _shownItem;
+  WeatherResponse? _weatherRes;
   List<WeatherResponse> weatherFavs = [];
 
 
+  //Build Favorites List
   Future<void> _initFavs() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
 
@@ -34,13 +38,6 @@ class WeatherModel extends ChangeNotifier{
   }
 
 
-  List<WeatherResponse> get items => weatherFavs;
-
-  WeatherResponse? get selected => _selectedItem;
-
-  WeatherResponse? get shown => _shownItem;
-
-
   Future<void> loadWeatherFavorites() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     const String prefKey = 'previousWeather';
@@ -53,33 +50,81 @@ class WeatherModel extends ChangeNotifier{
           WeatherResponse weatherRes=WeatherResponse.fromFavListJson(json.decode(pref.getString(key)!));
           weatherFavs.add(weatherRes);
         }
+      }
     }
-    }
-
     notifyListeners();
   }
 
+  //Get Favorites
+  List<WeatherResponse> get items => weatherFavs;
+
+  //Remove or add from/to Favorites
   Future<void> addItem(WeatherResponse s) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
 
     if(pref.getString(s.cityName!)==null)
-      {
-        weatherFavs.add(s);
+    {
+      weatherFavs.add(s);
 
-        String jsonString =jsonEncode(s.toJson());
-        pref.setString(s.cityName!, jsonString);
+      String jsonString =jsonEncode(s.toJson());
+      pref.setString(s.cityName!, jsonString);
+
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeItem(WeatherResponse s) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+
+    if(pref.getString(s.cityName!)!=null)
+    {
+      developer.log('remove: '+s.cityName!);
+
+      for(WeatherResponse fav in weatherFavs ){
+        if (fav.cityName==s.cityName)
+        {
+          weatherFavs.remove(fav);
+          pref.remove(s.cityName!);
+          _selectedItem=null;
+          _weatherRes=null;
+          notifyListeners();
+          return;
+        }
       }
+    }
 
   }
 
-  void setShownItem(WeatherResponse? s) {
-    _shownItem = s;
-
-  }
-
-  void setSelectedItem(WeatherResponse? s) {
-    _selectedItem = s;
+  //WeatherRes
+  void setWeatherRes(WeatherResponse? s) {
+    _weatherRes = s;
     notifyListeners();
   }
+
+  WeatherResponse? get weatherRes => _weatherRes;
+
+  //Shown
+  void setShownItem(WeatherResponse? s) {
+    _shownItem = s;
+  }
+
+  WeatherResponse? get shown => _shownItem;
+
+  //Gps Button pressed
+  void setGpsTrue(){
+    _gpsPressed=true;
+  }
+
+  bool get gpsPressed => _gpsPressed;
+
+  //Selected
+  void setSelectedItem(WeatherResponse? s) {
+    _selectedItem = s;
+    _gpsPressed=false;
+    notifyListeners();
+  }
+
+  WeatherResponse? get selected => _selectedItem;
+
 
 }
